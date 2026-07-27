@@ -1,29 +1,51 @@
 ---
 name: readme
-description: Minimal project README template for repositories created from the Agentic Rails context starter.
+description: FoodUs Relay - a deliberately dumb, self-hosted, store-and-forward server that ferries sealed end-to-end-encrypted envelopes between FoodUs household phones.
 metadata:
   version: "3.1"
   agentic_rails_source_version: "3.1"
-  owner: "Your Name"
-  repo: "your-repo"
+  owner: "Jarryd Adaens"
+  repo: "FoodUs-Server"
 ---
-# Project Name
+# FoodUs Relay
 
-Short description of the project.
+The server side of FoodUs: a deliberately dumb, self-hosted, store-and-forward relay ("the
+post office") that ferries sealed end-to-end-encrypted envelopes between household phones
+running the [FoodUs](https://github.com/maksimowiczm/FoodYou) Android app fork.
 
 ## Overview
 
-Replace this section with the project-specific purpose, audience, and current status.
+The FoodUs app is an island: each phone's local database is the sole source of truth. This
+relay is the single controlled break in that island. It holds only GUIDs, usernames, public
+keys, friend codes, block relationships, and per-GUID queues of sealed ciphertext envelopes.
+It never sees plaintext diary data — a breach yields ciphertext, usernames, and GUIDs, nothing
+else.
+
+Planned stack: ASP.NET (C#) minimal APIs, SQLite storage, Caddy in front for automatic HTTPS,
+deployed as a plain systemd service on a small Ubuntu VPS.
+
+**Status:** context initialized; no server code yet. Work begins at
+[Milestone 3](context/milestones/milestone-3.md) (milestone numbering is project-wide, shared
+with the FoodUs app repository — Milestones 1 and 2 have no server-side scope).
+
+This repository ships everything needed for someone to stand up *their own* relay: source,
+config template, and setup instructions. The owner's own relay endpoint address is private and
+is never published here.
 
 ## Getting Started
 
-Add setup, build, test, and run instructions once the project stack is known.
+Build, deploy, and configuration instructions will land alongside the first server code
+(Milestone 3). The wire contract specification — the single source of truth the app conforms
+to — will be a maintained document in this repository, created by Milestone 3's first story.
 
 ## Project Context
 
-This repository was created from `agentic_rails_context_starter`, the context-template side of the Agentic Rails system.
+This repository was created from `agentic_rails_context_starter`, the context-template side of
+the Agentic Rails system.
 
-This README is the single entry point for the repository. Use the links below as a convenient nexus into the broader context layers — not every file, just the doorways into each part of the system.
+This README is the single entry point for the repository. Use the links below as a convenient
+nexus into the broader context layers — not every file, just the doorways into each part of the
+system.
 
 ### Start here
 
@@ -49,7 +71,7 @@ This README is the single entry point for the repository. Use the links below as
 ## Repository Layout
 
 ```text
-project-root/
+FoodUs-Server/
 |-- AGENTS.md
 |-- AGENTIC_RAILS_README.MD
 |-- CLAUDE.md
@@ -65,11 +87,15 @@ project-root/
 |   |-- implementation-plans/
 |   `-- wiki/
 `-- harness/
-    |-- README-HARNESS.md
-    `-- <module-name>/          (one folder per verifier, gate, guardrail seam, sensor, or actuator)
+    `-- README-HARNESS.md
 ```
+
+Server source, tests, and the deployment script will be added when Milestone 3 implementation
+begins.
 
 ## Notes
 
-- Replace this README with project-specific information as the project matures.
-- Keep `AGENTIC_RAILS_README.MD` in derived projects so the framework context is not lost when this README changes.
+- The peer repository is the FoodUs Android app (fork of maksimowiczm/FoodYou). This repo owns
+  the wire contract; the app conforms to it. See
+  [context/design.md](context/design.md) for the two-repository working model.
+- Keep `AGENTIC_RAILS_README.MD` so the framework context is not lost as this README evolves.

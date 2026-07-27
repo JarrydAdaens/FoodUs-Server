@@ -8,6 +8,6 @@ metadata:
 
 # Agentic Rails
 
-This repository, `agentic_rails_context_starter`, is the **left rail** of Agentic Rails: the template repository for project-local context, plans, implementation logs, and handovers.
+This repository, `FoodUs-Server`, was created from `agentic_rails_context_starter`, the **left rail** of Agentic Rails: the template repository for project-local context, plans, implementation logs, and handovers.
 
 The full framework overview — the rails and the records office, the context tier system, provenance, and handover conventions — is canonical in `agentic_rails_tooling/AGENTIC_RAILS_README.MD`. Read it there; this stub is not duplicated content and will not be kept in sync independently.

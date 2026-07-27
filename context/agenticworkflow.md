@@ -4,8 +4,8 @@ description: Workflow guide for how AI agents use the repository's context tier 
 metadata:
   version: "3.0"
   agentic_rails_source_version: "3.0"
-  owner: "Your Name"
-  repo: "your-repo"
+  owner: "Jarryd Adaens"
+  repo: "FoodUs-Server"
 ---
 # Agentic Workflow
 

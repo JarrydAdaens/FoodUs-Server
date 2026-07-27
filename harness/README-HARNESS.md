@@ -4,8 +4,8 @@ description: Guidance for the project harness — one self-contained module per 
 metadata:
   version: "3.2"
   agentic_rails_source_version: "3.2"
-  owner: "Your Name"
-  repo: "your-repo"
+  owner: "Jarryd Adaens"
+  repo: "FoodUs-Server"
 ---
 # Harness
 

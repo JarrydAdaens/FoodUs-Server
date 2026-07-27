@@ -4,8 +4,8 @@ description: Constitutional governance for AI-generated code — inviolable laws
 metadata:
   version: "1.3"
   agentic_rails_source_version: "1.3"
-  owner: "Your Name"
-  repo: "your-repo"
+  owner: "Jarryd Adaens"
+  repo: "FoodUs-Server"
 ---
 
 # Constitution of Code
