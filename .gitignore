@@ -1,0 +1,22 @@
+Desktop.ini
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+uv.lock
+
+# Harness module runtime output — tracked files define a module, ignored files
+# preserve local durability (see harness/README-HARNESS.md).
+harness/*/runs/
+harness/*/state/
+harness/*/last-run/
+harness/*/captures/
+harness/*/reports/
