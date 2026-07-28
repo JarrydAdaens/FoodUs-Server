@@ -3,7 +3,7 @@
 ## Metadata
 
 - Task Type: `STORY`
-- Status: `Draft`
+- Status: `Complete`
 - Owner: `Jarryd Adaens`
 - Last Updated: `28 July 2026`
 
@@ -86,14 +86,14 @@ Produce `docs/wire-contract-v1.md`: the owner-adjudicated wire contract v1 speci
 - Q: STORY 3.1 — What is the relay endpoint authentication scheme: how does a client prove GUID ownership without accounts, so a known GUID cannot be drained, overwritten, re-keyed, impersonated, or replayed?
   Impact: Gates the spec's auth-handshake section, the error semantics for auth failures, and the entire Story 3 (profiles-auth) implementation plan. It is the real security of the whole relay.
   Assumption: Device-key request signing (the app's crypto identity doubles as the device credential) + replay protection + a defined re-key announcement trust rule. Canonical temporary assumption for this run; Execution Step 3 works this up into concrete candidate(s) for owner adjudication before the auth section is finalized.
-  Status: `OPEN`
-  Answer: —
+  Status: `ANSWERED`
+  Answer: **Detached request signing.** Every authenticated request carries a detached signature over method + path + body hash + timestamp + nonce, made with the device private key whose public half is registered on the profile. The server enforces a replay window (timestamp freshness plus a nonce cache covering the window). Re-key announcements are trusted only when the new public key is signed by the old key. Algorithms fixed at ECDSA P-256 over SHA-256 with DER signatures, X.509 SubjectPublicKeyInfo public keys, and unpadded base64url encodings — chosen because Android Keystore (`SHA256withECDSA`) and dotnet built-in crypto (`ECDsa` + `DSASignatureFormat.Rfc3279DerSequence`) both support them with stock primitives. Specified in `docs/wire-contract-v1.md` §5. (Owner, 2026-07-28, run rails-boss-execute.)
 
 - Q: STORY 3.1 — Unknown-version envelope disposition: when a client refuses an envelope version it doesn't know, is the message acknowledged off the mailbox (accepting loss) or left queued (risking a repeated poll error)?
   Impact: Flagged by the app repo ("Open contract question", app milestone-3 Relay Contract Conformance); must be settled in this contract before app Story 8 is planned. Shapes the drain/acknowledge semantics of the mailbox endpoints.
   Assumption: Left queued until the 30-day sweep, with the drain protocol letting a client skip past unreadable envelopes without permanent poll failure — pending owner adjudication in Execution Step 4.
-  Status: `OPEN`
-  Answer: —
+  Status: `ANSWERED`
+  Answer: **Leave queued + selective skip.** Envelopes with an unknown version stamp stay queued until the 30-day sweep; the drain/acknowledge protocol lets a client acknowledge past unreadable envelopes selectively (per-envelope-id acknowledgement plus an `afterSequence` cursor) so polling never permanently fails. Specified in `docs/wire-contract-v1.md` §8.5. (Owner, 2026-07-28, run rails-boss-execute.)
 
 - Q: STORY 3.1 — Friend-code minting authority?
   Impact: Decides whether the spec needs a collision/registration protocol.
@@ -205,3 +205,124 @@ Produce `docs/wire-contract-v1.md`: the owner-adjudicated wire contract v1 speci
 - Peer-repo grounding (read-only): `D:\forked-projects\FoodYou\context\milestones\milestone-3.md` — Relay Contract Conformance section (incl. the flagged unknown-version envelope disposition question), Stories 2–3 and 6–8 consumer scope and dependency notes.
 - Owner adjudications recorded 2026-07-28 (run plan-spam-3_1-to-3_6): friend-code minting server-assigned; Crockford-style alphabet, 4-4-4 uppercase-display case-insensitive-input; spec path `docs/wire-contract-v1.md`.
 - Known unverified claims: none — no runtime or build claims are made by this plan.
+
+---
+
+## Execution Log
+
+**Run:** `rails-boss-execute`, 2026-07-28. Executed by a worker agent rooted in `FoodUs-Server`.
+
+### Owner adjudications received at execution start
+
+The owner ruled on both OPEN questions in chat before execution, removing the need for Execution
+Steps 3–4's candidate-analysis-then-adjudicate loop. Both rulings are recorded in the Questions
+section above with provenance "Owner, 2026-07-28, run rails-boss-execute":
+
+1. **Endpoint authentication → detached request signing** (method + path + body hash + timestamp
+   + nonce, replay window with nonce cache, re-key trusted only when the new key is signed by
+   the old key). The owner directed that algorithm and encoding choices be made explicit and be
+   compatible with the app's Android Keystore crypto identity.
+2. **Unknown-version envelope disposition → leave queued + selective skip.**
+
+The owner also ruled the **sign-off gate is commit-then-review**: write the complete spec with no
+`PENDING ADJUDICATION` markers, update this plan, and commit; owner review of the committed spec
+follows. This modifies Execution Step 7's ordering — sign-off is post-commit, not pre-commit.
+
+### Steps executed
+
+| Step | Outcome |
+| --- | --- |
+| 1. Spec skeleton | Done — `docs/wire-contract-v1.md` created with all 11 planned sections. `docs/` created by this story. |
+| 2. Fill non-auth sections to full precision | Done — sections 1–4 and 6–11 complete, cross-checked against app-repo Stories 2–3, 6–8 and the Relay Contract Conformance obligations. |
+| 3. Auth decision | Superseded — adjudicated directly by the owner before execution. Section 5 written complete; no `PENDING ADJUDICATION` marker was ever introduced. |
+| 4. Envelope disposition | Superseded — adjudicated directly by the owner. Settled in spec §8.5 and §9.4. |
+| 5. Record resolutions into `context/design.md` | Done — Assumptions items 1–4 resolved with provenance (item 5, the domain, left open for Story 6); Security and Privacy endpoint-auth bullet rewritten to the adjudicated scheme; The Wire Contract section links the confirmed path; Repository Structure tree shows `docs/` as real. Milestones Index status moved to In Progress. |
+| 6. Update `context/milestones/milestone-3.md` | Done — Story 1 open decisions annotated resolved (plus a fifth entry for the app-flagged envelope-disposition question), Story 1 Status → Complete, Story Index row 1 → Complete, milestone Status → 1/6 complete. Stories 3–5 plan cells changed from "blocked pending Story 1" to "unblocked by Story 1", a direct consequence of this story's completion. |
+| 7. Owner review gate | Deferred by owner ruling to post-commit review. |
+
+### Decisions made inside the adjudicated envelope
+
+The owner fixed the scheme; these are the concrete specification choices made to express it, all
+recorded in the spec and open to owner amendment at review:
+
+- **ECDSA P-256 / SHA-256**, DER (ASN.1 `SEQUENCE`) signature encoding, X.509
+  SubjectPublicKeyInfo public keys, unpadded base64url on the wire — the intersection of what
+  Android Keystore's `SHA256withECDSA` emits by default and what dotnet's `ECDsa` verifies with
+  `DSASignatureFormat.Rfc3279DerSequence`.
+- **Canonical signing string** with a fixed domain-separation prefix line
+  (`FoodUs-Relay-Request-v1`), so a contract signature can never be replayed elsewhere; a second
+  prefix (`FoodUs-Relay-Rekey-v1`) domain-separates the re-key statement.
+- **Replay window:** ±120 s freshness, nonce cache retained ≥300 s.
+- **Trust on first use** for a GUID's first profile registration (self-signed); thereafter the
+  registered key is authoritative.
+- **Drain protocol split into cursor + acknowledgement** (`GET /v1/messages?afterSequence=` and
+  `POST /v1/messages/acknowledge`), which is what makes the owner's leave-queued-and-skip ruling
+  implementable without permanent poll failure.
+- **Push-side indistinguishability:** `POST /v1/messages` returns an identical `202 Accepted`
+  whether the envelope was queued or discarded (blocked sender, unknown recipient, full queue),
+  extending the blocked-equals-nonexistent rule to the push path. Trade-off recorded in spec
+  §8.4: an envelope to a mistyped GUID vanishes without a signal.
+- **No unblock endpoint in v1** — blocking is permanent from the relay's side; adding unblock
+  later is an additive amendment.
+
+### Harness
+
+`harness/README-HARNESS.md` installed-modules index is empty — **no matching harness module
+exists** for this story, so no harness gate was run. Recorded per the plan's Automated Checks.
+
+### Verifiers run
+
+| Verifier | Result |
+| --- | --- |
+| Markdown link check — every relative link in the three changed/created markdown files | **PASS** — 28 relative links resolved, 0 missing (includes the 6 links this story added). |
+| Constitutional audit of the full diff | **PASS** — no accounts/login/sessions concepts (explicitly forbidden in spec §2.1 and §5); 30-day sweep stated (§2.5, §7.2, §10); blocked and nonexistent responses byte-identical with the timing side channel called out (§9.3); HTTPS-only stated (§2.7, §3); additive-evolution rules stated (§4). Scanned every added line across `docs/` and `context/` for URLs, IP literals, real domains, credentials, and key material — the only host string anywhere is the placeholder `relay.example`, and the only key-shaped strings are truncated illustrative examples. |
+| Coverage sweep | **PASS** — 7 endpoint sections (§8.1 profile, §8.2 resolve, §8.3 regenerate, §8.4 push, §8.5 poll/drain, §8.6 block, §8.7 capabilities) plus §7 envelope schema, §5 auth handshake, and §9 error semantics, each with a dedicated section. |
+| Build / compile | **Not run — not applicable.** Documentation-only story in a repository with no code; there is no build step to run and none was fabricated. |
+| Consumer cross-check against the app repo (read-only) | **PASS** — app Story 2 (profile fields), Story 3 (public key registration + re-key seam), Story 6 (friend-code display/regenerate), Story 7 (resolve + block), Story 8 (envelope, push/poll, version stamping) and the six Relay Contract Conformance obligations each map to a named spec section. |
+
+### Deviations from the plan
+
+1. Steps 3–4 collapsed into owner adjudication received before execution rather than produced by
+   the agent — a simplification the owner authorized directly.
+2. Step 7 (owner review) moved after the commit by the owner's commit-then-review ruling.
+3. Two small edits beyond the literal Step 5–6 lists, both direct consequences of Story 1
+   completing: the Milestones Index status for Milestone 3, and the Stories 3–5 "blocked pending
+   Story 1" annotations that Story 1's completion made false.
+
+---
+
+## Completion Review
+
+**Status:** Complete (pending owner review of the committed spec, per the commit-then-review
+ruling).
+
+### Acceptance criteria
+
+| Criterion | Verdict |
+| --- | --- |
+| `docs/wire-contract-v1.md` exists and is complete per the coverage sweep | **Met** — contract v1.0, 11 sections. Owner adjudication of the two gating decisions was obtained before writing; sign-off on the finished document is post-commit by owner ruling. |
+| Endpoint authentication fully specified, no `PENDING ADJUDICATION` markers | **Met** — spec §5 is complete and no marker was ever written into the file. |
+| `context/design.md` and `context/milestones/milestone-3.md` reflect every resolution | **Met** — no decision is stranded in this plan or the spec alone. |
+| Stories 2–5 unblocked without reopening a Story 1 decision | **Met** — auth scheme (Story 3), friend-code format and minting plus block indistinguishability (Story 4), envelope schema, drain protocol and sweep (Story 5), and the capability endpoint (Story 2) are each specified to implementation precision. |
+| No secret or private value entered the repository | **Met** — constitutional audit above; placeholder host only. |
+
+### What a downstream story should know
+
+- **Story 2** implements `GET /v1/capabilities` exactly as spec §8.7 shapes it, including
+  `serverTime` (clients depend on it to correct clock skew before signing) and the `limits`
+  block, whose values are the contract's, not the operator's, to change.
+- **Story 3** owns spec §5 end to end. The timing-equalization obligation in §9.3 and the
+  replay-window constants in §5.4 are its test surface, per the design's testing policy.
+- **Story 4** must not return early on a friend-code miss; §9.3 requires the blocked path and
+  the nonexistent path to do the same work and emit the same bytes.
+- **Story 5** must treat acknowledgement, not reading, as the delete trigger, or the owner's
+  leave-queued ruling is silently broken.
+
+### Residual risk
+
+- The contract has not yet met a real client. The app repository's Stories 3 and 8 are the first
+  genuine conformance test of the Android-Keystore-compatible algorithm choices in §5.1; any gap
+  found there is handled by the additive-evolution rules in §4, not by editing v1 in place.
+- Rate-limit thresholds (§9.5) are deliberately left to the operator and are not contract values;
+  Story 4 must still implement a limit on friend-code resolution or the 60-bit code space is
+  sweepable.

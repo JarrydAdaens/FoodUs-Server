@@ -50,7 +50,7 @@ The backlog (`backlog/`) is not a numbered tier. It is a staging pool — inform
 | --- | --- | --- | --- | --- |
 | Milestone 1: Initialization *(app repo only)* | [milestones/milestone-1.md](milestones/milestone-1.md) | Not Applicable | Project-wide numbering alignment with the FoodUs app repo | — |
 | Milestone 2: Customisation *(app repo only)* | [milestones/milestone-2.md](milestones/milestone-2.md) | Not Applicable | Project-wide numbering alignment with the FoodUs app repo | — |
-| Milestone 3: Multiplayer Relay | [milestones/milestone-3.md](milestones/milestone-3.md) | Not Started | The relay is the single controlled break in the app's island architecture; every cross-device feature flows through it | Cross-diary logging between the two household phones; friends, groups, and messaging in the app's Milestone 3 |
+| Milestone 3: Multiplayer Relay | [milestones/milestone-3.md](milestones/milestone-3.md) | In Progress | The relay is the single controlled break in the app's island architecture; every cross-device feature flows through it | Cross-diary logging between the two household phones; friends, groups, and messaging in the app's Milestone 3 |
 
 Keep this index in sync as milestones are added, completed, reordered, or reclassified. When a backlog story scores as epic-sized, promote it into this index as a new milestone.
 
@@ -149,9 +149,11 @@ The wire contract — envelope shape, endpoints, auth scheme, version stamps —
 maintained document in this repository, the single source of truth both agents read. It is the
 first deliverable of Milestone 3 (story `wire-contract-v1`).
 
-- *Assumed location (to confirm when the story is planned):* `docs/wire-contract-v1.md`.
+- *Location (confirmed, story `wire-contract-v1` complete):*
+  [../docs/wire-contract-v1.md](../docs/wire-contract-v1.md).
 - Every packet carries a version stamp (e.g. envelope v1). A receiver that sees an unknown
-  version refuses loudly instead of silently mangling.
+  version refuses loudly instead of silently mangling. A client that meets an unknown envelope
+  version on drain leaves it queued and skips past it, so polling never permanently fails.
 - When the contract changes, both sides change in the same sitting.
 
 ### API Versioning and Evolution
@@ -173,7 +175,7 @@ first deliverable of Milestone 3 (story `wire-contract-v1`).
 FoodUs-Server/
 |-- context/                  (this context tier system)
 |-- harness/                  (verifiers, gates, guardrail seams)
-|-- docs/                     (planned: wire contract spec — location to confirm)
+|-- docs/                     (wire contract spec: wire-contract-v1.md)
 |-- source/                   (planned: ASP.NET relay solution)
 |-- tests/                    (planned)
 |-- scripts/                  (planned: committable publish script)
@@ -226,11 +228,16 @@ address is itself a secret and is never published anywhere in this repository.
   and block relationships. No plaintext diary data ever reaches the server.
 - **Transport:** HTTPS only, terminated by Caddy; relay listens on localhost only.
 - **Host hardening:** SSH key authentication only, no password auth.
-- **Endpoint authentication (open decision, must be settled in the wire-contract story):**
-  "no accounts" still requires proof of GUID ownership so a known GUID cannot be drained,
-  overwritten, re-keyed, impersonated, or replayed. Likely shape: requests signed with the
-  device key pair (the app's crypto identity doubles as the device credential) plus replay
-  protection and a defined trust rule for re-key announcements.
+- **Endpoint authentication (settled — see the [wire contract](../docs/wire-contract-v1.md)
+  §5):** "no accounts" still requires proof of GUID ownership so a known GUID cannot be drained,
+  overwritten, re-keyed, impersonated, or replayed. **Detached request signing:** every
+  authenticated request carries a signature over method, path, body hash, timestamp, and nonce,
+  made with the device private key whose public half is registered on the profile (the app's
+  crypto identity doubles as the device credential). Replay protection is a timestamp freshness
+  window plus a nonce cache covering that window. A re-key announcement is trusted only when
+  the new public key is signed by the old key. Algorithms are ECDSA P-256 over SHA-256 with
+  base64url encodings — chosen so Android Keystore and dotnet built-in crypto both implement
+  them with stock primitives.
 - **Block semantics:** blocked requesters receive "user not found", indistinguishable from a
   nonexistent user.
 - **Sweep:** undelivered messages are deleted after 30 days.
@@ -278,17 +285,25 @@ more than a handful of users.
 Recorded here so they are not stranded in the dictation; each is also staged on the owning
 story in [milestones/milestone-3.md](milestones/milestone-3.md).
 
-1. **Relay endpoint authentication scheme** — open; likely device-key request signing +
-   replay protection + re-key trust rule. Settle in the wire-contract story before any
-   implementation plan is written.
-2. **Friend-code minting authority** — server-assigned vs client-generated + registered.
-   *(Owner input wanted.)*
-3. **Friend-code alphabet** — charset and case rules (shape is fixed: 4-4-4 blocks, dashes,
-   letters+numbers; exclude 0/O and 1/I ambiguity?). *(Owner input wanted.)*
-4. **Wire contract document** — exact endpoints, envelope schema, auth handshake; the first
-   deliverable of Milestone 3. Its assumed path `docs/wire-contract-v1.md` needs confirming.
-5. **Which domain** points at the droplet — owner holds several; to be sorted (the value stays
-   private either way).
+1. **Relay endpoint authentication scheme** — **Resolved:** detached request signing over
+   method + path + body hash + timestamp + nonce, with a timestamp-freshness replay window plus
+   nonce cache, and re-key announcements trusted only when the new public key is signed by the
+   old key. ECDSA P-256 / SHA-256, base64url. *(Owner, 2026-07-28, run `rails-boss-execute`;
+   specified in [wire-contract-v1.md](../docs/wire-contract-v1.md) §5.)*
+2. **Friend-code minting authority** — **Resolved:** server-assigned; the relay generates codes
+   and guarantees uniqueness, so no wire collision protocol exists. *(Owner, 2026-07-28, run
+   `plan-spam-3_1-to-3_6`.)*
+3. **Friend-code alphabet** — **Resolved:** Crockford-style 32-symbol alphabet — uppercase
+   letters and digits excluding 0/O and 1/I; case-insensitive on input, displayed uppercase;
+   shape fixed at 4-4-4 dashed blocks. *(Owner, 2026-07-28, run `plan-spam-3_1-to-3_6`.)*
+4. **Wire contract document** — **Resolved:** written and living at
+   [docs/wire-contract-v1.md](../docs/wire-contract-v1.md), covering endpoints, envelope schema,
+   auth handshake, and error semantics. Path confirmed by the owner, 2026-07-28 (run
+   `plan-spam-3_1-to-3_6`). The app-flagged unknown-version envelope disposition was settled in
+   the same document: leave queued until the 30-day sweep, with selective acknowledgement so
+   polling never permanently fails *(Owner, 2026-07-28, run `rails-boss-execute`)*.
+5. **Which domain** points at the droplet — **open**; owner holds several; to be sorted in
+   Milestone 3 Story 6 (the value stays private either way).
 
 ---
 

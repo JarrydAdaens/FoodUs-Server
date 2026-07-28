@@ -55,7 +55,7 @@ this milestone; it is validation, not a separate server story.
 
 ## Status
 
-Not Started — 0/6 stories complete.
+In Progress — 1/6 stories complete.
 
 ---
 
@@ -75,11 +75,11 @@ Not Started — 0/6 stories complete.
 
 | # | Story | Type | Complexity | Effort | Risk | Plan | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | [Wire contract v1](#story-1) | Research | — | — | — | [plan.md](../implementation-plans/milestone-3/wire-contract-v1/plan.md) | Not Started |
+| 1 | [Wire contract v1](#story-1) | Research | — | — | — | [plan.md](../implementation-plans/milestone-3/wire-contract-v1/plan.md) | Complete |
 | 2 | [Relay service skeleton](#story-2) | Feature | — | — | — | [plan.md](../implementation-plans/milestone-3/relay-skeleton/plan.md) | Not Started |
-| 3 | [Profiles & endpoint auth](#story-3) | Feature | — | — | — | Not yet planned — blocked pending Story 1 | Not Started |
-| 4 | [Friend codes, resolution & blocks](#story-4) | Feature | — | — | — | Not yet planned — blocked pending Story 1 | Not Started |
-| 5 | [Mailbox & sweep](#story-5) | Feature | — | — | — | Not yet planned — blocked pending Story 1 | Not Started |
+| 3 | [Profiles & endpoint auth](#story-3) | Feature | — | — | — | Not yet planned — unblocked by Story 1 | Not Started |
+| 4 | [Friend codes, resolution & blocks](#story-4) | Feature | — | — | — | Not yet planned — unblocked by Story 1 | Not Started |
+| 5 | [Mailbox & sweep](#story-5) | Feature | — | — | — | Not yet planned — unblocked by Story 1 | Not Started |
 | 6 | [Hosting & first deployment](#story-6) | Feature | — | — | — | [plan.md](../implementation-plans/milestone-3/hosting-deployment/plan.md) | Not Started |
 
 ### Paired-story traceability (server ↔ app)
@@ -116,16 +116,24 @@ nonexistent alike). Minimum API surface per the dictation: register/update profi
 friend code → { GUID, username, public key } with block enforcement, regenerate friend code,
 push sealed message, poll/drain mailbox, record blocks, version/capability query.
 
-**Open decisions (resolve in this story; owner input where marked):**
+**Open decisions — all resolved:**
 
-1. **Relay endpoint authentication.** Proof of GUID ownership without accounts — likely
-   device-key request signing plus replay protection and a trust rule for re-key
-   announcements.
-2. **Friend-code minting authority:** server-assigned vs client-generated + registered.
-   *(Owner input wanted.)*
-3. **Friend-code alphabet:** charset and case rules; shape fixed at 4-4-4 dashed blocks.
-   *(Owner input wanted.)*
-4. **Spec document location.** Assumed `docs/wire-contract-v1.md`; confirm with the owner.
+1. **Relay endpoint authentication.** *Resolved:* detached request signing over method + path +
+   body hash + timestamp + nonce with the device private key, a timestamp-freshness replay
+   window plus nonce cache, and re-key announcements trusted only when the new public key is
+   signed by the old key (ECDSA P-256 / SHA-256, base64url). *(Owner, 2026-07-28, run
+   `rails-boss-execute`.)*
+2. **Friend-code minting authority.** *Resolved:* server-assigned; uniqueness guaranteed by the
+   relay, no wire collision protocol. *(Owner, 2026-07-28, run `plan-spam-3_1-to-3_6`.)*
+3. **Friend-code alphabet.** *Resolved:* Crockford-style — uppercase letters and digits
+   excluding 0/O and 1/I; case-insensitive input, uppercase display; 4-4-4 dashed blocks.
+   *(Owner, 2026-07-28, run `plan-spam-3_1-to-3_6`.)*
+4. **Spec document location.** *Resolved:* [docs/wire-contract-v1.md](../../docs/wire-contract-v1.md),
+   confirmed and now written. *(Owner, 2026-07-28, run `plan-spam-3_1-to-3_6`.)*
+5. **Unknown-version envelope disposition** (raised by the app repo, settled here). *Resolved:*
+   unreadable envelopes stay queued until the 30-day sweep; the drain protocol uses a cursor
+   plus selective acknowledgement so a client skips past them and polling never permanently
+   fails. *(Owner, 2026-07-28, run `rails-boss-execute`.)*
 
 **Why / value:**
 Everything else in this milestone — and every app-repo consumer story — conforms to this
@@ -135,6 +143,8 @@ document. Its open decisions must be settled before any implementation plan is w
 One maintained specification document plus resolutions recorded back into
 [design.md](../design.md). No code.
 
+**Delivered:** [docs/wire-contract-v1.md](../../docs/wire-contract-v1.md) — contract v1.0.
+
 **CER:**
 
 - Complexity: —
@@ -143,7 +153,8 @@ One maintained specification document plus resolutions recorded back into
 
 **Plan:** [plan.md](../implementation-plans/milestone-3/wire-contract-v1/plan.md)
 
-**Status:** Not Started
+**Status:** Complete — contract v1.0 written 2026-07-28; owner review is post-commit per the
+owner's commit-then-review ruling (2026-07-28, run `rails-boss-execute`).
 
 ---
 
@@ -204,7 +215,7 @@ protection, re-key handling. Unit tests per the design testing policy.
 - Effort: —
 - Risk: —
 
-**Plan:** Not yet planned — blocked pending Story 1 (wire contract v1).
+**Plan:** Not yet planned — unblocked by Story 1 (wire contract v1, complete).
 
 **Status:** Not Started
 
@@ -236,7 +247,7 @@ tests.
 - Effort: —
 - Risk: —
 
-**Plan:** Not yet planned — blocked pending Story 1 (wire contract v1).
+**Plan:** Not yet planned — unblocked by Story 1 (wire contract v1, complete).
 
 **Status:** Not Started
 
@@ -266,7 +277,7 @@ Unit tests for sweep boundaries and version refusal.
 - Effort: —
 - Risk: —
 
-**Plan:** Not yet planned — blocked pending Story 1 (wire contract v1).
+**Plan:** Not yet planned — unblocked by Story 1 (wire contract v1, complete).
 
 **Status:** Not Started
 
