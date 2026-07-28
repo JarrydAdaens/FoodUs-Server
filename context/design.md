@@ -175,7 +175,8 @@ first deliverable of Milestone 3 (story `wire-contract-v1`).
 FoodUs-Server/
 |-- context/                  (this context tier system)
 |-- harness/                  (verifiers, gates, guardrail seams)
-|-- docs/                     (wire contract spec: wire-contract-v1.md)
+|-- deploy/                   (Caddyfile and systemd unit templates; placeholder values only)
+|-- docs/                     (wire contract spec + self-hosting setup instructions)
 |-- source/
 |   |-- FoodUsRelay.sln
 |   `-- FoodUsRelay/          (ASP.NET minimal API relay)
@@ -187,7 +188,7 @@ FoodUs-Server/
 |       `-- appsettings.Production.template.json  (blank values; copy-and-fill on the droplet)
 |-- tests/
 |   `-- FoodUsRelay.Tests/    (xUnit; WebApplicationFactory boot + capability smoke)
-|-- scripts/                  (planned: committable publish script)
+|-- scripts/                  (publish.ps1: publish -> copy over SSH -> restart the service)
 `-- README.md
 ```
 

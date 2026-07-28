@@ -1,0 +1,17 @@
+# FoodUs relay — Caddy front door (TEMPLATE).
+#
+# Public mechanism, private values: `relay.example.com` below is a placeholder. Copy this file
+# to /etc/caddy/Caddyfile on your host and replace it with your own host name. Never commit
+# the filled-in version anywhere.
+#
+# Caddy obtains and renews a Let's Encrypt certificate for this host automatically and
+# redirects plain HTTP to HTTPS on its own — that is the whole reason it is here. The relay
+# itself speaks plain HTTP on loopback only and never terminates TLS.
+#
+# The proxy target must match the relay's Kestrel endpoint. That is
+# `Kestrel__Endpoints__Http__Url` in the relay's configuration, which defaults to
+# http://127.0.0.1:5000 (source/FoodUsRelay/appsettings.json). Change one, change the other.
+
+relay.example.com {
+	reverse_proxy 127.0.0.1:5000
+}

@@ -26,6 +26,9 @@ appsettings.*.local.json
 *.secrets.json
 .env
 
+# Deployment target for the publish script: host name, SSH user, and key path are private.
+scripts/publish.local.psd1
+
 # Local SQLite databases
 *.db
 *.db-wal

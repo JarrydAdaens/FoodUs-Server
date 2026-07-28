@@ -33,6 +33,7 @@ it identifies or unlocks the owner's instance.
 | Runtime secrets (database path, signing material, etc.) | On the droplet, as environment variables or an uncommitted config file | Repo ships only the blank-valued template |
 | Relay endpoint address (domain / droplet IP) | Owner's head, phones' relay-URL setting, DNS | Typed into each phone by hand; ships nowhere in code or repo |
 | Deployment credentials | None committed | The publish script contains steps, never credentials |
+| Deploy target (host, SSH user, key path) | `scripts/publish.local.psd1` on the owner's machine, git-ignored | Read by `scripts/publish.ps1`; every value can also be passed as a parameter instead |
 
 ## Non-Secrets (by design)
 
@@ -44,6 +45,16 @@ protect.
 ## To Document When Implementation Lands
 
 1. The exact config template file name and its blank keys.
-2. How to bootstrap a fresh droplet (env vars / config file placement).
+2. **Droplet bootstrap — settled (Milestone 3 Story 6).** Runtime configuration reaches the
+   service through ASP.NET's standard override chain: environment variables beat
+   `appsettings.Production.json` beside the executable, which beats the committed
+   `appsettings.json` defaults. Two keys carry real values —
+   `Kestrel__Endpoints__Http__Url` (must stay loopback) and `Relay__DatabasePath`. The
+   preferred placement is `/etc/foodus-relay/foodus-relay.env`, root-owned and mode 640,
+   loaded by the systemd unit's `EnvironmentFile=` and untouched by deploys; the alternative
+   is a filled copy of `appsettings.Production.template.json` in the install directory.
+   Neither file is ever committed. Full walkthrough: [docs/self-hosting.md](../../docs/self-hosting.md).
+   *(Remaining once the droplet exists: nothing repo-side — the values themselves stay on the
+   host.)*
 3. Rotation story for any server-side signing material, once endpoint auth is designed
    (Milestone 3, wire-contract story).

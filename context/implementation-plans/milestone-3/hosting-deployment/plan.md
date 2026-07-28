@@ -3,7 +3,7 @@
 ## Metadata
 
 - Task Type: `STORY`
-- Status: `Draft`
+- Status: `In Progress`
 - Owner: `Jarryd Adaens`
 - Last Updated: `28 July 2026`
 
@@ -95,14 +95,14 @@ Stand up the relay's live private endpoint: a provisioned and hardened DigitalOc
 - Q: STORY 3.6 — Droplet plan: the advised $6 USD/mo 1 GB, or $4 USD/mo 512 MB plus a swap file?
   Impact: Decides provisioning parameters and whether the hardening sequence includes swap-file creation; also whether `docs/self-hosting.md` presents swap as required or optional. Dictation advises 1 GB for headroom under Ubuntu + dotnet + Caddy.
   Assumption: The advised $6/mo 1 GB plan; `self-hosting.md` documents the 512 MB + swap path as the budget alternative either way.
-  Status: `OPEN` *(owner input)*
-  Answer: —
+  Status: `ANSWERED`
+  Answer: Assumption accepted for the **document only** — `docs/self-hosting.md` advises 1 GB and documents 512 MB + swap (with the swap-file commands) as the budget alternative. The actual plan purchased remains the owner's choice at provisioning time; no committed artifact depends on it. *(Boss run rails-boss-execute, 2026-07-28, plan assumptions accepted.)*
 
 - Q: STORY 3.6 — Do the Caddyfile and systemd unit templates live as files under a new `deploy/` directory, or as fenced blocks inside `docs/self-hosting.md`?
   Impact: Repository Structure tree in design.md; copy-paste fidelity for a stranger standing up their own relay.
   Assumption: Standalone template files under `deploy/` (scp-able as-is, diffable, referenced from the doc); design tree updated when they land. Low-stakes — resolvable at execution start without owner input unless the owner cares.
-  Status: `OPEN`
-  Answer: —
+  Status: `ANSWERED`
+  Answer: Standalone files under `deploy/` — `Caddyfile.template` and `foodus-relay.service.template`, both linked from `docs/self-hosting.md`. `design.md`'s Repository Structure tree gained `deploy/` and un-planned `scripts/`. *(Boss run rails-boss-execute, 2026-07-28, plan assumptions accepted.)*
 
 ## Execution Steps
 
@@ -199,3 +199,76 @@ Stand up the relay's live private endpoint: a provisioned and hardened DigitalOc
 - Planning inputs read: `context/laws.md` (v1.3), `context/design.md` (v3.0 — architecture chain, deployment pipeline, configuration/secrets policy, observability, testing policy, open question 5), `context/milestones/milestone-3.md` (v3.0 — Story 6, constitutional constraints, interdependency order item 3), `context/dictations-tier-0/2026-07-27_foodus-relay_tier-0-design.md` (Hosting / Front Door / Deployment Model decisions locked 2026-07-27), `context/wiki/secrets.md` (v0.2), `context/implementation-plans/milestone-3/wire-contract-v1/plan.md` (Story 1 plan, context only).
 - Locked hosting decisions carried verbatim from the dictation: DigitalOcean SYD1, Ubuntu 24.04 LTS, SSH-key-only, monitoring on, backups off, 1 GB advised (or 512 MB + swap), Caddy with automatic Let's Encrypt, plain systemd not Docker, publish-don't-build-on-server, committable steps-never-credentials publish script, endpoint address private.
 - Known unverified claims: none — no runtime, provisioning, or build actions were performed at planning time; all droplet/DNS/Caddy behavior claims are deferred to the Step 7 smoke checks.
+
+---
+
+## Execution Log
+
+**Run:** `rails-boss-execute`, 2026-07-28. **Slice executed:** repository side only — Steps 1,
+8, and 9. **Deployed capability level: none.** Nothing has been provisioned or deployed; the
+milestone's deployment gate (full capability set live) is untouched.
+
+| Step | Outcome |
+| --- | --- |
+| 1. Author committed deployment artifacts | Done. `scripts/publish.ps1` (parameters plus a git-ignored `scripts/publish.local.psd1` for host / SSH user / identity file; `dotnet publish` self-contained `linux-x64` → `tar` → `scp` → stop, unpack, chown, start over `ssh`; no host, credential, or key path baked in). `deploy/Caddyfile.template` (placeholder `relay.example.com`, `reverse_proxy 127.0.0.1:5000` — the port verified against Story 2's `appsettings.json`). `deploy/foodus-relay.service.template` (`Type=simple` because Story 2's host has no systemd integration, dedicated `foodus-relay` system user, `WorkingDirectory=/opt/foodus-relay`, `ASPNETCORE_ENVIRONMENT=Production` plus optional `EnvironmentFile=-/etc/foodus-relay/foodus-relay.env` carrying `Kestrel__Endpoints__Http__Url` and `Relay__DatabasePath`, `Restart=on-failure`, baseline sandboxing). `docs/self-hosting.md` (stranger-ready walkthrough of Steps 2–7). `.gitignore` gained the `scripts/publish.local.psd1` rule, and a new `.gitattributes` pins `deploy/**` to LF so a Windows checkout cannot copy CRLF into a systemd unit or Caddyfile. |
+| 2. Provision the droplet | **Not run — owner-executed.** |
+| 3. Harden the droplet | **Not run — owner-executed.** Documented in `docs/self-hosting.md` §2. |
+| 4. Install Caddy | **Not run — owner-executed.** Documented in §3. |
+| 5. Point the domain | **Not run — owner-executed.** Documented in §4. |
+| 6. Install the unit and first deploy | **Not run — owner-executed.** Documented in §5–6. |
+| 7. Smoke-check | **Not run — owner-executed.** The six checks are listed in §7 for the owner to run and record here. |
+| 8. Secrets audit | Done, clean. Swept every authored file and the working diff: the only IPv4 literal is the documented `127.0.0.1` loopback; the only host name is the placeholder `relay.example.com`; the only other domains are the official Caddy apt repository (`dl.cloudsmith.io`) and the .NET download link. No credential, key path, or owner username appears anywhere — account names (`foodus-relay`, `deploy`) are mechanism defaults published for any reader. |
+| 9. Context maintenance | Done for what this slice settles. `design.md` Repository Structure gained `deploy/` and un-planned `scripts/`; open question 5 (domain) deliberately left **open**. `wiki/secrets.md` item 2 (droplet bootstrap) filled with the settled env/config placement, and the deploy-target row added to "What Lives Where". `milestone-3.md` Story 6 status → In Progress with the owner-pending note; milestone completion count unchanged at 2/6. |
+
+**Harness:** `harness/` currently holds only `README-HARNESS.md` and the module template — no
+module matches this story, so no harness gate was run.
+
+**Verification performed**
+
+- Regression build: `dotnet build source/FoodUsRelay.sln` — succeeded, 0 warnings, 0 errors
+  (the informational `NETSDK1057` preview-SDK notice remains, as recorded in the Story 2 plan).
+- Regression tests: `dotnet test source/FoodUsRelay.sln` — 3 passed, 0 failed.
+- PowerShell syntax: `[System.Management.Automation.Language.Parser]::ParseFile` on
+  `scripts/publish.ps1` — 0 parse errors. The script was deliberately **not executed**; it
+  would attempt to reach a host that does not exist yet.
+- Secrets sweep (Step 8) — clean, as above.
+- Stranger desk-check: `docs/self-hosting.md` read end to end covers provisioning, hardening
+  (firewall 22/80/443, non-root service user, unattended upgrades, optional deploy account with
+  narrow sudo), Caddy from the official apt repo, DNS, runtime config placement, unit install,
+  first deploy, the non-Windows equivalent commands, and all six smoke checks — with no
+  owner-specific value.
+- Link check: every relative link added (`../deploy/*.template`, `../context/wiki/secrets.md`,
+  `wire-contract-v1.md`, `../../docs/self-hosting.md`) resolves to an existing file.
+
+## Completion Review
+
+**Repository slice: complete. Story: not complete.**
+
+What the repo now carries is the whole public mechanism — a publish script, both server-side
+templates, and setup instructions a stranger can follow to stand up their own relay — with
+placeholder values throughout. What it does not carry, and by design never will, is a live
+endpoint: Steps 2–7 are physical actions on a real server and remain the owner's to execute.
+
+Acceptance criteria status:
+
+- Public mechanism committed and placeholder-valued — **met**.
+- Secrets discipline intact, audit clean — **met**.
+- `design.md`, `wiki/secrets.md`, and `milestone-3.md` reflect the outcome, with the deployed
+  capability level recorded as none — **met**.
+- Relay live behind Caddy/HTTPS as an enabled systemd service, deployed via the script — **not
+  met, owner-pending**.
+- Smoke checks passing and recorded — **not met, owner-pending**.
+
+Two things stay open and must not be read as settled. The domain question (design.md open
+question 5) is untouched: no committed artifact depends on it, but DNS, the real Caddyfile, and
+the value typed into both phones do. And the droplet plan choice is fixed only in the
+documentation's advice, not in a purchase.
+
+The honest risk carried forward is the one the plan already named: the publish script has never
+been run end to end. Its syntax parses and its steps are the documented ones, but "publish →
+copy → restart" is unproven until it runs against a real host, and the sudoers rule in
+`docs/self-hosting.md` §2 is the most likely first thing to need adjusting. Step 6's mandate
+stands — the first deploy must be the script, not a hand-copy.
+
+**Next action (owner):** execute Steps 2–7, then record the smoke-check results in this
+Execution Log and flip the story to Complete.

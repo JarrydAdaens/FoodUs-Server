@@ -1,0 +1,3 @@
+# Deployment templates are copied to a Linux host as-is. A stray CR would end up inside a
+# systemd unit value or a Caddyfile directive, so keep these LF in every working copy.
+deploy/** text eol=lf

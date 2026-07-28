@@ -80,7 +80,7 @@ In Progress — 2/6 stories complete.
 | 3 | [Profiles & endpoint auth](#story-3) | Feature | — | — | — | Not yet planned — unblocked by Story 1 | Not Started |
 | 4 | [Friend codes, resolution & blocks](#story-4) | Feature | — | — | — | Not yet planned — unblocked by Story 1 | Not Started |
 | 5 | [Mailbox & sweep](#story-5) | Feature | — | — | — | Not yet planned — unblocked by Story 1 | Not Started |
-| 6 | [Hosting & first deployment](#story-6) | Feature | — | — | — | [plan.md](../implementation-plans/milestone-3/hosting-deployment/plan.md) | Not Started |
+| 6 | [Hosting & first deployment](#story-6) | Feature | — | — | — | [plan.md](../implementation-plans/milestone-3/hosting-deployment/plan.md) | In Progress |
 
 ### Paired-story traceability (server ↔ app)
 
@@ -323,7 +323,11 @@ instructions generic enough for a stranger to stand up their own relay.
 
 **Plan:** [plan.md](../implementation-plans/milestone-3/hosting-deployment/plan.md)
 
-**Status:** Not Started
+**Status:** In Progress — the public mechanism is committed (`scripts/publish.ps1`,
+`deploy/Caddyfile.template`, `deploy/foodus-relay.service.template`,
+[docs/self-hosting.md](../../docs/self-hosting.md)). Droplet provisioning, hardening, Caddy,
+DNS, unit install, first deploy, and the smoke checks are owner-executed and still pending;
+nothing is deployed yet.
 
 ---
 

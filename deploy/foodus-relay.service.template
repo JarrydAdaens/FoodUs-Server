@@ -1,0 +1,48 @@
+# FoodUs relay — systemd unit (TEMPLATE).
+#
+# Copy to /etc/systemd/system/foodus-relay.service on your host, adjust the paths if your
+# layout differs, then `sudo systemctl daemon-reload && sudo systemctl enable --now foodus-relay`.
+#
+# Values here are mechanism only: no host name, no credential, no key path. Runtime values
+# live in the environment file below, which is created on the host and never committed.
+
+[Unit]
+Description=FoodUs relay
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Type=simple, not notify: the relay is a plain WebApplication host with no systemd
+# integration, so it never sends a readiness notification.
+Type=simple
+
+# Dedicated non-root account. Create it as a system user with no login shell and no home.
+User=foodus-relay
+Group=foodus-relay
+
+WorkingDirectory=/opt/foodus-relay
+ExecStart=/opt/foodus-relay/FoodUsRelay
+
+# Selects appsettings.Production.json beside the executable — the copy of
+# source/FoodUsRelay/appsettings.Production.template.json filled in on this host.
+Environment=ASPNETCORE_ENVIRONMENT=Production
+
+# Optional (leading '-' means "ignore if absent"): the same configuration keys as environment
+# variables, which win over the Production file. One KEY=value per line, for example:
+#   Kestrel__Endpoints__Http__Url=http://127.0.0.1:5000
+#   Relay__DatabasePath=/var/lib/foodus-relay/relay.db
+# Keep it root-owned and readable only by the service account: chmod 640, chown root:foodus-relay.
+EnvironmentFile=-/etc/foodus-relay/foodus-relay.env
+
+Restart=on-failure
+RestartSec=5
+
+# Baseline hardening: the relay needs to write only its SQLite database.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/foodus-relay
+
+[Install]
+WantedBy=multi-user.target
