@@ -75,12 +75,12 @@ Not Started — 0/6 stories complete.
 
 | # | Story | Type | Complexity | Effort | Risk | Plan | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | [Wire contract v1](#story-1) | Research | — | — | — | *link when generated* | Not Started |
-| 2 | [Relay service skeleton](#story-2) | Feature | — | — | — | *link when generated* | Not Started |
-| 3 | [Profiles & endpoint auth](#story-3) | Feature | — | — | — | *link when generated* | Not Started |
-| 4 | [Friend codes, resolution & blocks](#story-4) | Feature | — | — | — | *link when generated* | Not Started |
-| 5 | [Mailbox & sweep](#story-5) | Feature | — | — | — | *link when generated* | Not Started |
-| 6 | [Hosting & first deployment](#story-6) | Feature | — | — | — | *link when generated* | Not Started |
+| 1 | [Wire contract v1](#story-1) | Research | — | — | — | [plan.md](../implementation-plans/milestone-3/wire-contract-v1/plan.md) | Not Started |
+| 2 | [Relay service skeleton](#story-2) | Feature | — | — | — | [plan.md](../implementation-plans/milestone-3/relay-skeleton/plan.md) | Not Started |
+| 3 | [Profiles & endpoint auth](#story-3) | Feature | — | — | — | Not yet planned — blocked pending Story 1 | Not Started |
+| 4 | [Friend codes, resolution & blocks](#story-4) | Feature | — | — | — | Not yet planned — blocked pending Story 1 | Not Started |
+| 5 | [Mailbox & sweep](#story-5) | Feature | — | — | — | Not yet planned — blocked pending Story 1 | Not Started |
+| 6 | [Hosting & first deployment](#story-6) | Feature | — | — | — | [plan.md](../implementation-plans/milestone-3/hosting-deployment/plan.md) | Not Started |
 
 ### Paired-story traceability (server ↔ app)
 
@@ -141,7 +141,7 @@ One maintained specification document plus resolutions recorded back into
 - Effort: —
 - Risk: —
 
-**Plan:** `../implementation-plans/milestone-3/wire-contract-v1/plan.md`
+**Plan:** [plan.md](../implementation-plans/milestone-3/wire-contract-v1/plan.md)
 
 **Status:** Not Started
 
@@ -173,7 +173,7 @@ foundations, configuration surface, capability endpoint per the contract.
 - Effort: —
 - Risk: —
 
-**Plan:** `../implementation-plans/milestone-3/relay-skeleton/plan.md`
+**Plan:** [plan.md](../implementation-plans/milestone-3/relay-skeleton/plan.md)
 
 **Status:** Not Started
 
@@ -204,7 +204,7 @@ protection, re-key handling. Unit tests per the design testing policy.
 - Effort: —
 - Risk: —
 
-**Plan:** `../implementation-plans/milestone-3/profiles-auth/plan.md`
+**Plan:** Not yet planned — blocked pending Story 1 (wire contract v1).
 
 **Status:** Not Started
 
@@ -236,7 +236,7 @@ tests.
 - Effort: —
 - Risk: —
 
-**Plan:** `../implementation-plans/milestone-3/friend-codes/plan.md`
+**Plan:** Not yet planned — blocked pending Story 1 (wire contract v1).
 
 **Status:** Not Started
 
@@ -266,7 +266,7 @@ Unit tests for sweep boundaries and version refusal.
 - Effort: —
 - Risk: —
 
-**Plan:** `../implementation-plans/milestone-3/mailbox/plan.md`
+**Plan:** Not yet planned — blocked pending Story 1 (wire contract v1).
 
 **Status:** Not Started
 
@@ -301,7 +301,7 @@ instructions generic enough for a stranger to stand up their own relay.
 - Effort: —
 - Risk: —
 
-**Plan:** `../implementation-plans/milestone-3/hosting-deployment/plan.md`
+**Plan:** [plan.md](../implementation-plans/milestone-3/hosting-deployment/plan.md)
 
 **Status:** Not Started
 
