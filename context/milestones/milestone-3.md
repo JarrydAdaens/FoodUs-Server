@@ -55,7 +55,7 @@ this milestone; it is validation, not a separate server story.
 
 ## Status
 
-In Progress — 1/6 stories complete.
+In Progress — 2/6 stories complete.
 
 ---
 
@@ -76,7 +76,7 @@ In Progress — 1/6 stories complete.
 | # | Story | Type | Complexity | Effort | Risk | Plan | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | [Wire contract v1](#story-1) | Research | — | — | — | [plan.md](../implementation-plans/milestone-3/wire-contract-v1/plan.md) | Complete |
-| 2 | [Relay service skeleton](#story-2) | Feature | — | — | — | [plan.md](../implementation-plans/milestone-3/relay-skeleton/plan.md) | Not Started |
+| 2 | [Relay service skeleton](#story-2) | Feature | — | — | — | [plan.md](../implementation-plans/milestone-3/relay-skeleton/plan.md) | Complete |
 | 3 | [Profiles & endpoint auth](#story-3) | Feature | — | — | — | Not yet planned — unblocked by Story 1 | Not Started |
 | 4 | [Friend codes, resolution & blocks](#story-4) | Feature | — | — | — | Not yet planned — unblocked by Story 1 | Not Started |
 | 5 | [Mailbox & sweep](#story-5) | Feature | — | — | — | Not yet planned — unblocked by Story 1 | Not Started |
@@ -178,6 +178,14 @@ graceful-degradation model depends on.
 New server codebase under `source/` (structure per repo conventions), SQLite schema
 foundations, configuration surface, capability endpoint per the contract.
 
+**Delivered:** `source/FoodUsRelay.sln` — a .NET 10 minimal API bound to `http://127.0.0.1:5000`
+by committed configuration, `Microsoft.Data.Sqlite` connection factory plus an embedded numbered
+migration runner (baseline 001 is schema-version bookkeeping only; domain tables belong to
+Stories 3–5), `GET /v1/capabilities` per wire contract v1 §8.7 reporting an honest — currently
+empty — capability and envelope-version set, `appsettings.Production.template.json` with blank
+values plus `.gitignore` secret blocking, and `tests/FoodUsRelay.Tests/` boot and migration
+smoke tests.
+
 **CER:**
 
 - Complexity: —
@@ -186,7 +194,8 @@ foundations, configuration surface, capability endpoint per the contract.
 
 **Plan:** [plan.md](../implementation-plans/milestone-3/relay-skeleton/plan.md)
 
-**Status:** Not Started
+**Status:** Complete — skeleton built and verified 2026-07-28 (clean build, 3/3 tests green,
+loopback-only binding proven, secrets audit clean).
 
 ---
 

@@ -13,6 +13,24 @@ venv/
 .ruff_cache/
 uv.lock
 
+# .NET build output
+[Bb]in/
+[Oo]bj/
+*.user
+.vs/
+
+# Secrets — real runtime values live on the droplet, never in this repository.
+# Only appsettings.Production.template.json (blank values) is committed.
+appsettings.Production.json
+appsettings.*.local.json
+*.secrets.json
+.env
+
+# Local SQLite databases
+*.db
+*.db-wal
+*.db-shm
+
 # Harness module runtime output — tracked files define a module, ignored files
 # preserve local durability (see harness/README-HARNESS.md).
 harness/*/runs/

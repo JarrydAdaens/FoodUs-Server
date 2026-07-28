@@ -176,8 +176,17 @@ FoodUs-Server/
 |-- context/                  (this context tier system)
 |-- harness/                  (verifiers, gates, guardrail seams)
 |-- docs/                     (wire contract spec: wire-contract-v1.md)
-|-- source/                   (planned: ASP.NET relay solution)
-|-- tests/                    (planned)
+|-- source/
+|   |-- FoodUsRelay.sln
+|   `-- FoodUsRelay/          (ASP.NET minimal API relay)
+|       |-- Program.cs                            (host, migration run, endpoint mapping)
+|       |-- Data/                                 (SQLite connection factory, migrator)
+|       |   `-- Migrations/                       (numbered .sql scripts, embedded)
+|       |-- Endpoints/                            (one file per endpoint + its response types)
+|       |-- appsettings.json                      (local-dev defaults; never secrets)
+|       `-- appsettings.Production.template.json  (blank values; copy-and-fill on the droplet)
+|-- tests/
+|   `-- FoodUsRelay.Tests/    (xUnit; WebApplicationFactory boot + capability smoke)
 |-- scripts/                  (planned: committable publish script)
 `-- README.md
 ```
@@ -211,9 +220,13 @@ Update this tree as the server solution takes shape in Milestone 3.
 
 ### Primary Configuration
 
-The repo carries a config template with blank values (exact file name fixed during Milestone 3
-implementation). Real runtime values (database path, signing material, etc.) live on the
-droplet as environment variables or an uncommitted config file.
+The repo carries `source/FoodUsRelay/appsettings.Production.template.json`: a committed
+template with blank values only. On the droplet it is copied to `appsettings.Production.json`
+(git-ignored) and filled in, or the same keys are supplied as environment variables
+(`Kestrel__Endpoints__Http__Url`, `Relay__DatabasePath`). This is ASP.NET's standard override
+chain — environment variables beat the production file, which beats the committed
+`appsettings.json` defaults — with no custom loader. Real runtime values live on the droplet
+only. *(Names fixed in Milestone 3 Story 2.)*
 
 ### Secrets and Credentials
 

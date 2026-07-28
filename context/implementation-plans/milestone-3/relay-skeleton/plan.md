@@ -3,7 +3,7 @@
 ## Metadata
 
 - Task Type: `STORY`
-- Status: `Draft`
+- Status: `Complete`
 - Owner: `Jarryd Adaens`
 - Last Updated: `28 July 2026`
 
@@ -84,26 +84,26 @@ Stand up the ASP.NET (C#) minimal API relay chassis: the solution under `source/
 - Q: STORY 3.2 — What are the exact route and response schema of the version/capability endpoint (and its precise relationship to the `/v1/` prefix — versioned route, unversioned root, or both)?
   Impact: This is the story's only wire-facing deliverable and the app's capability-aware UI consumes it verbatim; guessing here would fork the contract. Also determines whether the liveness check Story 6 and app Story 15 use is version-stable across future major routes.
   Assumption: Per Story 1's plan skeleton — a version/capability query endpoint under the `/v1/` prefix returning contract version plus a capability list; final shape taken from the adjudicated `docs/wire-contract-v1.md`, not from this assumption.
-  Status: `OPEN`
-  Answer: — (gated on Story 1 completion)
+  Status: `ANSWERED`
+  Answer: `GET /v1/capabilities`, unauthenticated, returning exactly the seven fields of [wire-contract-v1.md](../../../../docs/wire-contract-v1.md) §8.7 — `contractMajor`, `contractMinor`, `envelopeVersions`, `capabilities`, `limits` (the four §6.7 values), `retentionDays`, `serverTime`. Taken verbatim from the adjudicated contract, which supersedes the assumption. *(Boss run rails-boss-execute, 2026-07-28, plan assumptions accepted.)*
 
 - Q: STORY 3.2 — Which .NET version does the relay target?
   Impact: Fixes the SDK on the dev machine and the runtime footprint on the droplet (design budgets 1 GB for Ubuntu + dotnet + Caddy); baked into the csproj and later Story 6's publish/systemd setup, so it should be settled once, here.
   Assumption: The current LTS release (.NET 10) — set-and-forget appliance semantics favor LTS support windows, matching the Ubuntu 24.04 LTS hosting choice.
-  Status: `OPEN`
-  Answer: —
+  Status: `ANSWERED`
+  Answer: `net10.0` — the newest installed LTS. `dotnet --list-runtimes` shows the GA `Microsoft.AspNetCore.App 10.0.9` runtime installed, so the assumption stands. Caveat for Story 6: the only .NET 10 **SDK** on the dev machine is `10.0.400-preview.0.26322.102`, so builds emit the informational `NETSDK1057` preview notice; the droplet needs the GA 10.x runtime, and installing a GA 10.x SDK locally would clear the notice. *(Boss run rails-boss-execute, 2026-07-28, plan assumptions accepted.)*
 
 - Q: STORY 3.2 — Exact config template file name and shape: is `appsettings.Production.template.json` (committed, blank values) + uncommitted `appsettings.Production.json` / environment variables on the droplet the owner's preferred convention?
   Impact: Design.md explicitly defers "exact file name fixed during Milestone 3 implementation" to this story; the name is what setup instructions (Story 6) and the `.gitignore` blocking rules key on, so it should not churn.
   Assumption: `appsettings.Production.template.json` as proposed above, leaning on ASP.NET's standard environment/`appsettings.{Environment}.json`/environment-variable override chain rather than inventing a custom config loader.
-  Status: `OPEN`
-  Answer: —
+  Status: `ANSWERED`
+  Answer: Assumption accepted as written. Committed `appsettings.json` (local-dev-safe defaults) plus committed `appsettings.Production.template.json` (blank values, header comment explaining the copy-and-fill convention and the `Kestrel__Endpoints__Http__Url` / `Relay__DatabasePath` environment-variable equivalents); `appsettings.Production.json` is `.gitignore`-blocked. No custom loader. Recorded into design.md's Configuration section. *(Boss run rails-boss-execute, 2026-07-28, plan assumptions accepted.)*
 
 - Q: STORY 3.2 — How much SQLite schema counts as "schema foundations" in this story: machinery only, or domain tables up front?
   Impact: Milestone rough scope says "SQLite schema foundations"; over-reading it would have this story define profiles/codes/blocks/mailbox tables before their owning stories (and before the contract's data types are final), coupling the skeleton to decisions it doesn't own.
   Assumption: Machinery only — connection handling, the migration runner, and a baseline migration establishing schema-version bookkeeping. Domain tables ship as numbered migrations inside Stories 3–5, each beside the code that uses them.
-  Status: `OPEN`
-  Answer: —
+  Status: `ANSWERED`
+  Answer: Assumption accepted as written. `001_baseline.sql` creates only the `schema_migrations` bookkeeping table; no domain table exists in this story. *(Boss run rails-boss-execute, 2026-07-28, plan assumptions accepted.)*
 
 ## Execution Steps
 
@@ -188,3 +188,49 @@ Stand up the ASP.NET (C#) minimal API relay chassis: the solution under `source/
 - Planning inputs read: `context/laws.md` (v1.3), `context/design.md` (v3.0 — architecture chain, repository structure, configuration/secrets policy, API evolution rules, testing policy, observability), `context/milestones/milestone-3.md` (v3.0 — Story 2, constitutional constraints, interdependency order, paired-story traceability), `context/implementation-plans/milestone-3/wire-contract-v1/plan.md` (spec skeleton: `/v1/` prefix, capability endpoint section, adjudicated decisions), `context/dictations-tier-0/2026-07-27_foodus-relay_tier-0-design.md` (stack, secrets discipline, deployment ordering), `harness/README-HARNESS.md` (v3.2 — module index empty).
 - Peer-repo grounding (read-only, shallow): `D:\forked-projects\FoodYou\context\milestones\milestone-3.md` — capability-aware UI obligation and Story 15's capability-endpoint connection check confirm the consumer surface and the "honest capability set" requirement.
 - Known unverified claims: none — no runtime or build claims are made by this plan; the `dotnet new` template contents assumed in Step 1 are verified at execution time.
+
+---
+
+## Execution Log
+
+**Run:** `rails-boss-execute`, 2026-07-28. Execution gate satisfied — `docs/wire-contract-v1.md` v1.0 was committed at `cc72720` before this story began.
+
+**Harness:** `harness/README-HARNESS.md` re-checked at execution start; the installed-modules index is still `_(none yet)_`. **No matching harness module exists**, so no gate could run. Validation is the automated and manual checks below.
+
+| Step | Outcome |
+| --- | --- |
+| 1. Scaffold solution and projects | Done. `dotnet new web` / `xunit` / `sln --format sln` at `net10.0`. Template noise stripped: sample `MapGet("/")` endpoint, `Properties/launchSettings.json` (its `applicationUrl` would have overridden the loopback pin), `appsettings.Development.json`, `UnitTest1.cs`, and the `coverlet.collector` reference all removed. No HTTPS redirection and no Swagger/OpenAPI were ever added. `dotnet new sln` defaults to `.slnx` on this SDK, so the solution was regenerated with `--format sln` to land at the planned `source/FoodUsRelay.sln`. |
+| 2. Bind Kestrel to loopback | Done. `Kestrel:Endpoints:Http:Url` = `http://127.0.0.1:5000` in committed `appsettings.json`, carrying the constitutional-rule comment; a matching comment sits at the binding's other end in `Program.cs`. No HTTPS endpoint in the relay. |
+| 3. SQLite storage foundations | Done. `Data/SqliteConnectionFactory.cs` (path from `Relay:DatabasePath`, connection string assembled via `SqliteConnectionStringBuilder` so a path value cannot inject keywords), `Data/SchemaMigrator.cs` (numbered scripts, applied set read from `schema_migrations`, each script in its own transaction, insert parameterized), `Data/SchemaMigration.cs`, `Data/Migrations/001_baseline.sql`. Scripts are embedded resources so the runner never depends on the process working directory — it differs between `dotnet run`, systemd, and the test host. |
+| 4. Configuration surface and secret-blocking | Done. Committed `appsettings.json` (local-dev-safe) and `appsettings.Production.template.json` (blank values, header comment, environment-variable equivalents). `.gitignore` gained `[Bb]in/`, `[Oo]bj/`, `*.user`, `.vs/`, `appsettings.Production.json`, `appsettings.*.local.json`, `*.secrets.json`, `.env`, `*.db`, `*.db-wal`, `*.db-shm`. |
+| 5. Capability endpoint | Done. `GET /v1/capabilities` per contract §8.7, unauthenticated per §5.7. `capabilities` and `envelopeVersions` are both **empty** — the relay has no domain endpoint and accepts no push, so claiming either would break the app's graceful degradation. `limits` and `retentionDays` carry the contract-fixed §6.7 / §10 values with a comment noting the enforcing code lands in Stories 3–5. |
+| 6. Smoke test and manual pass | Done. `tests/FoodUsRelay.Tests/` — `RelayApplicationFactory` boots the real host against a throwaway temp database; `CapabilitiesEndpointTests` asserts the exact §8.7 field set, values, and RFC 3339 `serverTime` shape plus the honest-capability rule; `SchemaMigratorTests` proves re-running the migrator records each version once. 3 tests, all green. Manual smoke run and loopback proof recorded below. |
+| 7. Context updates and commit | Done. `context/design.md` Repository Structure tree and Configuration section updated; `context/milestones/milestone-3.md` Story 2 row/section set to Complete and the milestone count moved to 2/6; this log and the Completion Review appended; commit log produced with the `commit-log` skill. |
+
+**Deviations from the plan**
+
+1. **Transitive security warning fixed by an explicit pin.** `Microsoft.Data.Sqlite` 10.0.9 pulls `SQLitePCLRaw.lib.e_sqlite3` 2.1.11, which restore flags with `NU1903` (advisory `GHSA-2m69-gcr7-jv3q`, high severity). A direct `SQLitePCLRaw.bundle_e_sqlite3` 2.1.12 reference pins the fixed build. This adds a package *line* but no new dependency — it was already in the graph — and shipping a build with a known high-severity advisory would violate laws.md §2. Build is warning-free with the pin.
+2. **`SqliteConnection.ClearAllPools()` in test teardown.** Pooled connections keep a handle on the database file, so the first test run failed cleanup with an `IOException` while deleting the temp directory. Added to both test fixtures' disposal.
+3. **`dotnet test` was run against the solution** (`dotnet test source/FoodUsRelay.sln`) rather than the plan's project path; identical scope, since the solution holds exactly one test project.
+
+## Completion Review
+
+**Acceptance criteria**
+
+- ✅ `source/FoodUsRelay.sln` builds and runs as a localhost-only minimal API that opens/creates its SQLite database from configuration and applies its baseline migration at startup.
+- ✅ `GET /v1/capabilities` answers per the adjudicated contract and reports an honest — currently empty — capability set.
+- ✅ Committed template with blank values exists; real values are environment variables or a `.gitignore`-blocked file; the secrets audit passes.
+- ✅ Smoke tests pass; Stories 3–5 inherit a working solution, database seam, and test seam.
+- ✅ `context/design.md` and `context/milestones/milestone-3.md` reflect the new structure and status.
+
+**Validation**
+
+- Targeted tests: `dotnet test source/FoodUsRelay.sln` — **passed**, 3 passed / 0 failed / 0 skipped.
+- Build: `dotnet build source/FoodUsRelay.sln` — **passed**, 0 warnings, 0 errors.
+- Manual — loopback-only proof: `dotnet run` then `Get-NetTCPConnection -LocalPort 5000 -State Listen` — **passed**; the single listener is `127.0.0.1:5000`, no `0.0.0.0` and no IPv6 wildcard. Process stopped afterwards.
+- Manual — liveness/contract smoke: `GET http://127.0.0.1:5000/v1/capabilities` — **passed**; `200`, `application/json; charset=utf-8`, body `{"contractMajor":1,"contractMinor":0,"envelopeVersions":[],"capabilities":[],"limits":{"maxCiphertextBytes":262144,"maxQueuedEnvelopesPerRecipient":1000,"maxDrainBatch":100,"maxRequestBodyBytes":393216},"retentionDays":30,"serverTime":"2026-07-28T12:48:25Z"}`.
+- Manual — secrets audit: `git status --untracked-files=all` shows no config, database, domain, or credential file; `git check-ignore -v` confirms `appsettings.Production.json`, `bin/`, and `obj/` are ignored; the committed template holds blank values only — **passed**.
+- Manual — contract conformance: response field set and order match §8.7 exactly, no invented and no missing fields; asserted in `CapabilitiesEndpointTests` as well as by eye — **passed**.
+- Manual — simplicity review: no ORM, no repository layer, no config abstraction, no speculative seams; 9 production files and 3 test files, each tracing to a Scope line — **passed**.
+- Full suite: run — the solution's only test project is this story's.
+- Remaining uncertainty: the plan's "request against the machine's LAN address fails" check was proven by enumeration (the only listener is loopback) rather than by an actual off-box request, since no second machine was involved. Story 6 re-verifies binding on the droplet. Preview-SDK caveat recorded in the .NET version question above.
